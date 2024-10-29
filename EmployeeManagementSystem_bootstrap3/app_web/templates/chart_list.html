@@ -1,0 +1,280 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">折线图</div>
+            <div class="panel-body">
+                <div id="m1" style="width: 100%; height: 600px;"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="panel panel-default">
+                    <div class="panel-heading">柱状图</div>
+                    <div class="panel-body">
+                        <div id="m2" style="width: 100%; height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">饼图</div>
+                    <div class="panel-body">
+                        <div id="m3" style="width: 100%; height: 400px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    <script src="{% static 'js/echarts.js' %}"></script>
+    <script type="text/javascript">
+
+        $(function () {
+
+            initLine();
+            
+            initBar();
+
+            initPie();
+        })
+
+
+        /**
+         * 初始化折线图
+         */
+        function initLine() {
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('m1'));
+
+            var option = {
+                title: {
+                    text: '分公司业绩图',
+                    left: 'center'  // title 组件离容器左侧的距离。
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: [],  // 数据从后台获取,这里先清空: 'Email', 'Union Ads', 'Video Ads', 'Direct', 'Search Engine'
+                    bottom: 0  // 图例位于图表的:左右居中,上下方向最下方,多图例时水平平铺.
+                },
+
+                /**
+                 * grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                 */
+
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: []  // 数据从后台获取,这里先清空: '1月', '2月', '3月', '4月', '5月', '6月', '7月'
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    /**
+                     * {
+                        name: 'Email',
+                        type: 'line',
+                        stack: 'Total',
+                        data: [120, 132, 101, 134, 90, 230, 210]
+                    },
+                    {
+                        name: 'Union Ads',
+                        type: 'line',
+                        stack: 'Total',
+                        data: [220, 182, 191, 234, 290, 330, 310]
+                    },
+                    {
+                        name: 'Video Ads',
+                        type: 'line',
+                        stack: 'Total',
+                        data: [150, 232, 201, 154, 190, 330, 410]
+                    },
+                    {
+                        name: 'Direct',
+                        type: 'line',
+                        stack: 'Total',
+                        data: [320, 332, 301, 334, 390, 330, 320]
+                    },
+                    {
+                        name: 'Search Engine',
+                        type: 'line',
+                        stack: 'Total',
+                        data: [820, 932, 901, 934, 1290, 1330, 1320]
+                    }
+                     */
+
+                ]
+            };
+
+
+            $.ajax({
+                url: '/chart/line/',
+                type: 'get',
+                dataType: 'JSON',
+                success: function (result) {
+                    if (result.status) {
+
+                        option.legend.data = result.data.legend;
+                        option.xAxis.data = result.data.x_axis;
+                        option.series = result.data.series_list;
+
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(option);
+                    }
+                }
+            })
+
+        }
+        
+
+        /**
+         * 初始化柱状图
+         * (这个注释的快捷键:按一个/加两个**,再回车)
+         */
+        function initBar() {
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('m2'));
+
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: '员工业绩月度汇总信息',
+                    subtext: '销售部A组',
+                    textAlign: 'auto',  // 整体（包括 text 和 subtext）的水平对齐。
+                    left: 'center'  // title 组件离容器左侧的距离。
+                },
+                tooltip: {},
+                legend: {  // 图例
+                    data: [],  // '高露', '王楚然'   先注释掉,数据到后台去获取
+                    bottom: 0  // 图例位于图表的下方居中位置
+                },
+                xAxis: {  // X轴
+                    data: []  //  X轴上显示的字段    '1月', '2月', '3月', '4月', '5月', '6月', '7月'   先注释掉,数据到后台去获取
+                },
+                yAxis: {},  // Y轴
+                series: [
+                    // 先注释掉,数据到后台去获取
+                    /**
+                     * {
+                        name: '高露',
+                        type: 'bar',  // 类型:bar 表示显示柱状图
+                        data: [5, 20, 36, 10, 10, 30, 60]  //  X轴上每一个字段对应的值
+                    },
+                    {
+                        name: '王楚然',
+                        type: 'bar',  // 类型:bar 表示显示柱状图
+                        data: [15, 50, 56, 20, 60, 20, 55]  // x轴上每一个字段对应的值
+                    }
+                     */
+                ]
+            };
+
+            $.ajax({
+                url: "/chart/bar/",
+                type: "get",
+                dataType: "JSON",
+                success: function (result) {
+                    // 将后台返回的数据, 更新到option中饭.
+                    if (result.status) {
+                        // 更新数据
+                        option.legend.data = result.data.legend;
+                        option.xAxis.data = result.data.x_axis;
+                        option.series = result.data.series_list;
+
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(option);
+                    }
+
+
+                }
+            })
+
+        }
+
+        /**
+         * 初始化饼状图
+         */
+        function initPie() {
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('m3'));
+
+            var option = {
+                title: {
+                    text: '部门预算占比',
+                    subtext: 'A分公司',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    // orient: 'vertical',  // 图例位于图表的:左右居中, 上下方向靠最上方.
+                    // left: 'left',  // 图例位于图表的:左右靠左, 上线靠最上方.
+                    bottom: 0  // 图例位于图表的:左右居中,上下方向最下方,多图例时水平平铺.
+                },
+                series: [
+                    {
+                        name: '预算',
+                        type: 'pie',
+                        radius: '50%',
+                        data: [
+                            {value: 1048, name: 'IT部门'},
+                            {value: 735, name: '运营部'},
+                            {value: 580, name: '新媒体部'},
+                            {value: 484, name: '销售部'},
+                            {value: 300, name: '综合部'}
+                        ],
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+
+            $.ajax({
+                url: "/chart/pie/",
+                type: "get",
+                dataType: "JSON",
+                success: function (result) {
+                    // console.log(result);
+                    if (result.status) {
+                        option.series[0].data = result.data;
+
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(option);
+                    }
+                }
+            })
+
+        }
+        
+
+    </script>
+{% endblock %}
+
+

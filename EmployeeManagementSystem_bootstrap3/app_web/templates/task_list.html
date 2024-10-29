@@ -1,0 +1,515 @@
+{% extends 'layout.html' %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">添加任务表单</div>
+            <div class="panel-body">
+                <form id="formAdd">  <!--  -->
+                    <div class="clearfix">
+                        {% for fields in form_p %}
+                            <div class="col-xs-6">
+                                <div class="form-group" style="position: relative; margin-bottom: 20px;">
+                                    <label>{{ fields.label }}</label>
+                                    {{ fields }}
+                                    <span class="error-msg" style="color: red; position: absolute;"></span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="col-xs-12">
+                            <button id="btnAdd" type="button" class="btn btn-primary">提交</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+                任务列表
+            </div>
+
+            <!-- Table -->
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>标题</th>
+                    <th>级别</th>
+                    <th>负责人</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for obj in queryset_f %}
+                    <tr>
+                        <th>{{ obj.id }}</th>
+                        <td>{{ obj.task_title }}</td>
+                        <td>{{ obj.get_task_level_display }}</td>
+                        <td>{{ obj.task_responsible_person.admin_name }}</td>
+                        <td>
+                            <!-- <a class="btn btn-primary btn-xs" href="#">编辑</a>          -->
+                            <input taskid="{{ obj.id }}" class="btn btn-primary btn-xs btn-edit" type="button" value="编辑">  <!--  taskid=-->
+                            <!-- <a class="btn btn-danger btn-xs" href="#">删除</a>  -->
+                            <input taskid="{{ obj.id }}" class="btn btn-danger btn-xs btn-delete" type="button" value="删除">
+                        </td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
+        <ul class="pagination">
+            {{ page_string }}
+        </ul>
+
+
+
+        <div style="height: 1000px"></div>    <!-- 一个高度 1000px的空白区域 -->
+
+
+
+        <hr/>    <!-- 分隔线 -->
+
+        <div>
+            <h1>Ajax学习</h1>
+
+            <h3>示例1</h3>
+            <input id="btn1" type="button" class="btn btn-primary" value="点击1"/>
+
+            <h3>示例2</h3>
+            <input type="text" id="txtName" placeholder="姓名"/>
+            <input type="text" id="txtAge" placeholder="年龄"/>
+            <input id="btn2" type="button" class="btn btn-primary" value="点击2"/>
+
+            <h3>示例3</h3>
+            <form id="form3">
+                <input type="text" name="name" placeholder="姓名"/>
+                <input type="text" name="age" placeholder="年龄"/>
+                <input type="text" name="email" placeholder="邮箱"/>
+                <input type="text" name="more" placeholder="介绍"/>
+            </form>
+            <input id="btn3" type="button" class="btn btn-primary" value="点击3"/>
+        </div>
+
+    </div>
+
+
+    <!-- 编辑任务(对话框)   -->
+    <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="newTaskModalLabel">编辑任务</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="formEdit">  <!--  -->
+                        <div class="clearfix">
+                            {% for fields in form_p %}
+                                <div class="col-xs-6">
+                                    <div class="form-group" style="position: relative; margin-bottom: 20px;">
+                                        <label>{{ fields.label }}</label>
+                                        {{ fields }}
+                                        <span class="error-msg" style="color: red; position: absolute;"></span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button id="btnSave" type="button" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 删除确认(对话框)   -->
+    <!-- Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel">
+        <div class="modal-dialog" role="document">
+
+            <div class="alert alert-danger alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                        aria-hidden="true">×</span></button>
+                <h4>是否确定删除 ?</h4>
+                <p style="margin: 10px 0px;">删除后, 所有关联的数据都会被删除</p>
+                <p style="text-align: right;">
+                    <button id="btnConfirmDelete" type="button" class="btn btn-danger">确 定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取 消</button>
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
+
+
+
+{% block js %}
+    <script type="text/javascript">
+
+        var DELETE_ID;
+        var EDIT_ID;
+
+        $(function () {
+            // 页面框架加载完成之后代码自动执行
+            bindBtn1Event();
+            bindBtn2Event();
+            bindBtn3Event();
+
+            bindBtnAddEvent();
+
+            bindBtnDeleteEvent();
+
+            bindBtnConfirmDeleteEvent();
+
+            bindBtnEditEvent();
+
+            bindBtnSaveEvent();
+        })
+
+        function bindBtn1Event() {
+            $("#btn1").click(function () {
+                $.ajax({
+                    url: '/task/ajax/',
+                    type: "post",  // 浏览器的控制台会报错: POST http://127.0.0.1:8000/task/ajax/ 403 (Forbidden)
+                    data: {
+                        n1: 123,
+                        n2: 456
+                    },
+                    dataType: "JSON",
+                    success: function (res) {
+                        console.log(res);  // 得到字符串
+                        console.log(res.status);
+                        console.log(res.data);
+                    }
+                })
+            })
+        }
+
+        function bindBtn2Event() {
+            $("#btn2").click(function () {
+                $.ajax({
+                    url: '/task/ajax/',
+                    type: "post",
+                    data: {
+                        name: $("#txtName").val(),
+                        age: $("#txtAge").val()
+                    },
+                    dataType: "JSON",
+                    success: function (res) {
+                        console.log(res);
+                        console.log(res.status);
+                        console.log(res.data);
+                    }  // 后台日志收到:<QueryDict: {'name': ['jason'], 'age': ['18']}>
+                })
+            })
+        }
+
+        function bindBtn3Event() {
+            $("#btn3").click(function () {
+                $.ajax({
+                    url: '/task/ajax/',
+                    type: "post",
+                    data: $("#form3").serialize(),  // 将form3表单中的数据打包发送到django后台
+                    dataType: "JSON",
+                    success: function (res) {
+                        console.log(res);
+                        console.log(res.status);
+                        console.log(res.data);
+                    }  // 前端填写后,后台日志收到:<QueryDict: {'name': ['abc'], 'age': ['188'], 'email': ['9088956'], 'more': ['哈哈哈']}>
+                })
+            })
+        }
+
+        function bindBtnDeleteEvent() {
+            $(".btn-delete").click(function () {
+                // alert("已点击删除")
+                // 显示删除对话框
+                $("#deleteModal").modal('show');
+
+                // 获取当前行的ID,并赋值给全部变量
+                // var orderId = $(this).attr("orderid");
+                // console.log(orderId);
+                DELETE_ID = $(this).attr("task_id");
+            });
+        }
+
+        function bindBtnConfirmDeleteEvent() {
+            $("#btnConfirmDelete").click(function () {
+                // 点击确认删除按钮, 将全局变量中设置的那个要删除的ID发送到后台.
+                $.ajax({
+                    // url: "/order/" + DELETE_ID + "/delete/",  //    => /order/123/delete/   这是另外一种方式
+                    url: "/task/delete/",  //  => /order/delete/?orderid=123
+                    data: {
+                        task_id: DELETE_ID
+                    },
+                    type: "GET",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status){
+                            // 删除成功
+                            alert("删除成功");
+
+                            // 第一种处理删除对话框和页面更新的方法:比较有条理的方法
+                            // 隐藏删除对话框
+                            // $("#deleteModal").modal('hide');
+                            // 在页面上将当前这一行数据删除显示(js)
+                            // $("tr[orderid='" + DELETE_ID + "']").remove();
+                            // 将要删除的ID置空
+                            // DELETE_ID = 0;
+
+                            // 第二种处理删除对话框和页面更新的方法:更简单的思路,删除成功后,让页面刷新
+                            location.reload();
+                        } else {
+                            // 删除失败
+                            alert(res.error);
+                        }
+                    }
+                })
+            });
+        }
+
+
+        function bindBtnAddEvent() {
+            $("#btnAdd").click(function () {   // 添加标签是button类型的.
+
+                // 将正在编辑的ID设置为空
+                // EDIT_ID = undefined;
+
+                // 每次点击前先将错误信息为空
+                $(".error-msg").empty();
+
+                // 向后台发送请求
+                $.ajax({
+                    url: '/task/add/',
+                    type: "post",
+                    data: $("#formAdd").serialize(),  // 将form表单中用户填写的所有数据打包发送到django后台
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            alert("添加成功");
+                            // 用JS实现界面的刷新
+                            location.reload();
+                        } else {
+                            // console.log(res.error);
+                            $.each(res.error, function (name, data) {
+                                // console.log(name, data)
+                                $("#id_" + name).next().text(data[0]);  // 拼接每个字段的id,将错误信息显示在前端
+                            })
+                        }
+
+                    }
+                })
+            })
+        }
+
+
+
+        function bindBtnEditEvent() {
+            $(".btn-edit").click(function () {   // $(".btn-edit").click(function () {     这里的.btn-edit就是这样用的,跟其他的事件不一样,删除事件也是这样用的.编辑和删除的标签是input类型的
+                // alert("已点击编辑");
+
+                // 先清空对话框中的数据
+                $("#formEdit")[0].reset();
+
+                var currentTaskId = $(this).attr("taskid");
+
+                EDIT_ID = currentTaskId;  // currentTaskId赋值给全局变量EDIT_ID
+
+
+                // 发送Ajax去后端获取当前行的相关数据   =>> /order/detail/?orderid=123
+                $.ajax({
+                    url: "/task/detail/",
+                    type: "get",
+                    data: {
+                        taskid: currentTaskId,
+
+                    },
+                    dataType: "JSON",
+                    success: function (res) {
+                        console.log(res);
+                        if (res.status) {
+                            // console.log(res.data);
+
+                            // 将数据赋值到对话框中的标签中.
+                            $.each(res.data, function (name, value) {   // name, value分别是res中的data这个字段的key和value.
+                                // console.log(name, value);
+                                $("#id_edit" + name).val(value);  // val是给input赋值
+                            });
+                            // 排查到这里,代码都OK,但是问题在于把编辑按钮从后端获取来的数据给了添加任务的表单里了.
+
+                            // 点击编辑按钮,显示对话框
+                            $('#taskModal').modal('show');
+
+                        } else {
+                            alert(res.error);
+                        }
+                    }
+                });
+
+                // 向后台发送请求(任务编辑的Ajax请求)
+                $.ajax({
+                url: '/task/edit/' + '?taskid=' + EDIT_ID,  // 编辑的url
+                type: 'post',
+                data: $("#formEdit").serialize(),
+                dataType: "JSON",
+                success: function (res) {
+                    // console.log(res)
+                    if (res.status) {
+                        alert("编辑成功");
+
+                        // 清空表单
+                        $("#formEdit")[0].reset();  // $("#formAdd")是jquery对象,变成--->$("#formAdd")[0]是DOM对象.
+
+                        // 关闭对话框
+                        $('#taskModal').modal('hide');
+
+                        // 刷新页面,用JS实现界面的刷新
+                        location.reload();
+                    } else {
+
+                        if (res.tips){
+                            alert(res.tips);  // 当taskid不存在的时候,显示错误提示
+                        } else {
+
+                            // 创建失败时,将错误信息显示在对话框中
+                            $.each(res.error, function (name, errorList) {
+                                $("#id_edit_" + name).next().text(errorList[0]);  <!--  .next表示在下一级标签中 -->
+                            })
+                        }
+
+                    }
+                }
+            })
+
+
+
+            });
+        }
+
+
+
+
+        function doEdit() {
+
+            /**
+             * // 向后台发送请求(任务编辑的Ajax请求)
+            $.ajax({
+                url: '/task/edit/' + '?taskid=' + EDIT_ID,  // 编辑的url
+                type: 'post',
+                data: $("#formEdit").serialize(),
+                dataType: "JSON",
+                success: function (res) {
+                    // console.log(res)
+                    if (res.status) {
+                        alert("编辑成功");
+
+                        // 清空表单
+                        $("#formEdit")[0].reset();  // $("#formAdd")是jquery对象,变成--->$("#formAdd")[0]是DOM对象.
+
+                        // 关闭对话框
+                        $('#taskModal').modal('hide');
+
+                        // 刷新页面,用JS实现界面的刷新
+                        location.reload();
+                    } else {
+
+                        if (res.tips){
+                            alert(res.tips);  // 当taskid不存在的时候,显示错误提示
+                        } else {
+
+                            // 创建失败时,将错误信息显示在对话框中
+                            $.each(res.error, function (name, errorList) {
+                                $("#id_edit_" + name).next().text(errorList[0]);  <!--  .next表示在下一级标签中 -->
+                            })
+                        }
+
+                    }
+                }
+            })
+             */
+
+
+
+        }
+
+
+
+
+
+
+        function bindBtnSaveEvent() {
+            $("#btnSave").click(function () {
+
+                // 每次点击前先将错误信息为空
+                $(".error-msg").empty();
+
+
+                // 判断是否为EDIT_ID,然后确定是编辑订单还是添加订单
+                if (EDIT_ID) {
+                    // 编辑
+                    doEdit();
+                } else {
+                    // 添加
+                    doAdd();
+                }
+
+
+
+
+
+
+
+
+
+            });
+
+        }
+
+
+
+        /* function clickMe() {
+            // console.log("点击了按钮");
+
+            // ajax get请求
+            /* $.ajax({
+                url: '/task/ajax/',
+                type: "get",
+                data: {
+                    n1: 123,
+                    n2: 456
+                },
+                success: function (res){
+                    console.log(res);
+                }
+            }) */
+
+            // ajax post请求
+            /*$.ajax({
+                url: '/task/ajax/',
+                type: "post",  // 浏览器的控制台会报错: POST http://127.0.0.1:8000/task/ajax/ 403 (Forbidden)
+                data: {
+                    n1: 123,
+                    n2: 456
+                },
+                success: function (res){
+                    console.log(res);
+                }
+            })*/
+        /*}*/
+
+    </script>
+{% endblock %}
+

@@ -1,0 +1,39 @@
+{% extends 'layout.html'%}
+
+{% block content %}
+   <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"> {{ add_title }} </h3>
+            </div>
+            <div class="panel-body">
+                <form method="post" novalidate>  <!-- novalidate参数的含义是不显示浏览器提供的校验提示 -->
+                    {% csrf_token %}
+
+                    {% for fields in form %}
+                        <div class="form-group">
+                            <label>{{ fields.label }}</label>
+                            {{ fields }}
+                            <span style="color: red">{{ fields.errors.0 }}</span>  <!-- 只要显示错误信息中0号索引位的错误信息 -->
+                            <!-- <input type="text" class="form-control" placeholder="姓名" name="submit_name"/> -->
+                        </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary">提交</button>
+                    <button type="button" class="btn btn-default" onclick="cancelFunction()">取消</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block js %}
+    <script>
+        function cancelFunction() {
+            // 页面导航到
+            window.location.href = "http://127.0.0.1:8000/admin/list/";
+        }
+    </script>
+{% endblock %}

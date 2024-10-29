@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-datepicker/css/bootstrap-datepicker.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"> 新建部门 </h3>
+            </div>
+            <div class="panel-body">
+                <form method="post" novalidate>  <!-- novalidate参数的含义是不显示浏览器提供的校验提示 -->
+                    {% csrf_token %}
+
+                    {% for fields in form %}
+                        <div class="form-group">
+                            <label>{{ fields.label }}</label>
+                            {{ fields }}
+                            <span style="color: red">{{ fields.errors.0 }}</span>  <!-- 只要显示错误信息中0号索引位的错误信息 -->
+                            <!-- <input type="text" class="form-control" placeholder="姓名" name="submit_name"/> -->
+                        </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary">提交</button>
+                    <button type="button" class="btn btn-default" onclick="cancelFunction()">取消</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script rel="stylesheet" src="{% static 'plugins/bootstrap-datepicker/js/bootstrap-datepicker.js' %}"></script>
+    <script rel="stylesheet" src="{% static 'plugins/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
+    <script>
+        $(function () {
+            $('#id_create_time').datepicker({
+                format: 'yyyy-mm-dd',
+                startDate: '0',
+                language: "zh_CN",
+                autoclose: true
+                });
+        })
+
+        function cancelFunction() {
+            // 页面导航到
+            window.location.href = "http://127.0.0.1:8000/department/list/";
+        }
+
+    </script>
+
+{% endblock %}
+
+

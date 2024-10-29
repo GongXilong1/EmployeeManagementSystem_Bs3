@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<!-- 页面内容区域 -->
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"> 修改部门 </h3>
+            </div>
+            <div class="panel-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>标题</label>
+                        <input type="text" class="form-control" placeholder="标题" name="title" value="{{ row_object.title }}">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">提交</button>
+                    <button type="button" class="btn btn-default" onclick="cancelFunction()">取消</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block js %}
+    <script>
+        function cancelFunction() {
+            // 页面导航到
+            window.location.href = "http://127.0.0.1:8000/department/list/";
+        }
+    </script>
+{% endblock %}
+
+
